@@ -1,0 +1,63 @@
+{{ block "index" . }}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/static/js/htmx.min.js"></script>
+  <title>Home</title>
+</head>
+
+<body>
+  {{template "contactForm" .Form}}
+  <hr>
+  {{template "display" .Data}}
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.body.addEventListener("htmx:beforeSwap", (e) => {
+        if (e.detail.xhr.status === 422) {
+          e.detail.shouldSwap = true;
+          e.detail.isError = false
+        }
+      })
+    })
+  </script>
+</body>
+
+</html>
+{{ end }}
+
+{{ block "contactForm" . }}
+<form hx-swap="outerHTML" hx-post="/contacts">
+  name: <input type="text" name="name" {{ if .Values.name }} value="{{ .Values.name }}" {{ end }} required><br>
+  email: <input type="email" name="email" {{ if .Values.email }} value="{{ .Values.email }}" {{ end }} required><br>
+
+  {{ if .Errors.email }}
+  <div style="color: red">Mail already Exists</div>
+  {{ end }}
+
+  <input type="submit" value="Create Submit">
+</form>
+{{ end }}
+
+{{ block "display" .}}
+<div id="display" style="display: flex; flex-direction: column; justify-content: space-around;">
+  {{ range .Contacts }}
+  {{ template "Contact" . }}
+  {{ end }}
+</div>
+{{ end }}
+
+{{ block "Contact" .}}
+<div>
+  Name: <span>{{.Name}}</span><br>
+  Email: <span>{{.Email}}</span>
+</div>
+{{ end }}
+
+{{ block "oob-contact" .}}
+<div id="display" hx-swap-oob="afterend">
+  {{ template "Contact" .}}
+</div>
+{{ end }}
